@@ -17,9 +17,10 @@ When using git there are 2 repositories (folders) to keep in mind. There is one 
 
 Open the git bash app. You may first want to configure your username and email if you have not done so already using the following commands
 
----
+```
 
 git config --global user.name 'Your Name'
+
 git config --global user.email 'your@email.com'
 
----
+```
