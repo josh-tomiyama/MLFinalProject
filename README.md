@@ -47,6 +47,12 @@ git config --global user.name 'Your Name'
 git config --global user.email 'your@email.com'
 ```
 
+Now we will want to set up our login credentials for git. Use the following line to set up the git credential manager. Sometime later you will be prompted for a password and this information should be saved for future uses of git.
+
+```
+git config --global credential.helper wincred
+```
+
 Next we will want to make a copy of the remote repository onto your personal machine. First use cd to get to the place you want the working directory to be located. I give an example directory below
 
 ```
