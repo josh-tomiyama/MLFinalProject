@@ -56,5 +56,53 @@ cd C:users/josht/Documents/projects
 New we will clone the **remote directory**
 
 ```
-git clone 
+git clone https://github.com/josh-tomiyama/MLFinalProject.git
 ```
+
+Congratulations, you should now have a **local repository** named MLFinalProject in your current directory. Navigate to that file:
+
+```
+cd MLFinalProject
+```
+
+## Example workflow
+
+Now we will walk through an example workflow to introduce how to interact with the system.
+
+Before making changes, start by pulling any current updates from the **remote repository** using. You may need to replace 'main' with 'master' depending on the version of git.
+
+```
+git pull origin main
+```
+
+In this folder, create a text file (using say notepad). Personally, I created the file 'my_first_file_jt.txt'. Use ls to double check this file exists in the repsitory.
+
+Let's check the status of our **local repository**
+
+```
+git status
+```
+
+This should tell you have new file that is not currently being tracked. Let's add that file to the tracking:
+
+```
+git add my_first_file_jt.txt
+```
+
+**Note:** if you edited an existing file and you wanted to add it to a commit, you would use the same command as above.
+
+Run git status again. You should see your file is 'staged' for being tracked now. Let's save the current version of our file using the following:
+
+```
+git commit -m"Description of this commit"
+```
+
+**NOTE:** if you forget to the -m option, you will be taken to a file editor within git bash. The name of this editor is vim. It is up to you whether you want to learn how to use vim. For simplicity I suggest exiting this editor by pressing ESC and then write ':q!' and you should be able to quit. Redo the above command to commit with the -m option.
+
+Now you have made your first commit. Let's upload this commit to the remote repository.
+
+```
+git push origin master
+```
+
+Now check the online website https://github.com/josh-tomiyama/MLFinalProject/. You should see your file is now available there. Congratulations, you now know the basics of using git.
