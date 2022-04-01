@@ -75,7 +75,7 @@ cd MLFinalProject
 
 Now we will walk through an example workflow to introduce how to interact with the system.
 
-Before making changes, start by pulling any current updates from the **remote repository** using. You may need to replace 'main' with 'master' depending on the version of git.
+Before making changes, start by pulling any current updates from the **remote repository**. You may need to replace 'main' with 'master' depending on the version of git.
 
 ```
 git pull origin main
@@ -95,8 +95,6 @@ This should say that you have new file called 'my_first_file_jt.txt' that is not
 git add my_first_file_jt.txt
 ```
 
-**Note:** if you edited an existing file and you wanted to add it to a commit, you would use the same command as above.
-
 Run git status again. You should see your 'my_first_file_jt.txt' is 'staged' for being tracked now. Let's save the current version of our file using the following:
 
 ```
@@ -105,7 +103,7 @@ git commit -m"Description of this commit"
 
 Now you have made your first commit. In the future you would want the description to be more informative.
 
-**NOTE:** if you forget to the -m option, you will be taken to a file editor within git bash. The name of this editor is vim. It is up to you whether you want to learn how to use vim. For simplicity I suggest exiting this editor by pressing ESC and then write ':q!' and you should be able to quit. Redo the above command to commit with the -m option.
+**NOTE:** If you forget to the -m option, you will be taken to a file editor within git bash. The name of this editor is vim. It is up to you whether you want to learn how to use vim, but for simplicity I suggest exiting this editor by pressing ESC and then writing ':q!'. Redo the above command to commit with the -m option.
 
 Let's now upload our first commit to the **remote repository**: 
 
@@ -113,8 +111,8 @@ Let's now upload our first commit to the **remote repository**:
 git push origin master
 ```
 
-Check the online website https://github.com/josh-tomiyama/MLFinalProject/. You should see your file is now available there. Congratulations, you now know the basics of using git.
+Check the online website https://github.com/josh-tomiyama/MLFinalProject/. You should see your file is now available there. Congratulations, you now know the basics of using git. When you are creating/editing other types of files the exact same process should work.
 
 ## Worst case scenario
 
-If you ever feel like your git repository is messed up beyond repair, simply delete the file MLFinalProject and follow the above steps.
+If you ever feel like your git repository is messed up beyond repair, simply delete the file MLFinalProject and follow the steps to clone the repository again.
