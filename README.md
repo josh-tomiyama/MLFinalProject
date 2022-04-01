@@ -59,7 +59,7 @@ Next we will want to make a copy of the remote repository onto your personal mac
 cd C:users/josht/Documents/projects
 ```
 
-New we will clone the **remote directory**
+Finally, clone the **remote directory**
 
 ```
 git clone https://github.com/josh-tomiyama/MLFinalProject.git
@@ -111,8 +111,8 @@ Let's now upload our first commit to the **remote repository**:
 git push origin master
 ```
 
-Check the online website https://github.com/josh-tomiyama/MLFinalProject/. You should see your file is now available there. Congratulations, you now know the basics of using git. When you are creating/editing other types of files the exact same process should work.
+Check the online website https://github.com/josh-tomiyama/MLFinalProject/. You should see your file is now available there. Congratulations, you now know the basics of using git. When you are creating/editing other types of files you can follow this workflow by replacing the appropriate file name.
 
 ## Worst case scenario
 
-If you ever feel like your git repository is messed up beyond repair, simply delete the file MLFinalProject and follow the steps to clone the repository again.
+If you ever feel like your git repository is messed up beyond repair, simply delete the file MLFinalProject and follow the steps to clone the repository again. Of course, save any important changes you wanted to make into a separate folder.
