@@ -14,7 +14,7 @@ library(MachineShop)
 library(recipes)
 ```
 
-```{r setup}
+```{r controlSetup}
 library(doSNOW)
 registerDoSNOW(makeCluster(8))
 ## Resample control object
@@ -22,7 +22,7 @@ ctrl <- CVControl(seed = 123)
 ```
 
 
-```{r}
+```{r preProcess}
 dat <- readRDS("./data/hcc_data.RDS")
 
 rec_base <- recipe(
@@ -32,12 +32,61 @@ rec_base <- recipe(
   role_case(stratum = status) %>%
   check_missing(status) %>%
   step_num2factor(status, transform = function(x) x + 1,
-                  levels = c("died", "survive"))
+                  levels = c("died", "survive")) %>%
+  step_num2factor(gender, transform = function(x) x + 1,
+                  levels = c("female", "male")) %>%
+  step_num2factor(symptom, transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(alc, transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hepBsurfAnti,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hepBeAnti,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hepBcorAnti,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hepCvirAnti,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(cirr,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(endemicCountries,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(smoke,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(diabetes,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(obese,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hemochro,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(artHyper,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(chronRenal,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hiv,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(Nasteato,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(esophVarices,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(spleno,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(portalHyper,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(portalVeinThromb,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(LiverMeta,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(RadioHallmark,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(numNodules,transform = function(x) x + 1,
+                  levels = as.character(0:5))
 
-rec_base
+
+bake(prep(rec_base), new_data = dat)
 ```
 
-```{r}
+```{r fitting}
 rec <- rec_base %>%
   step_impute_mean(all_numeric_predictors()) %>%
   step_impute_mode(all_nominal_predictors())
