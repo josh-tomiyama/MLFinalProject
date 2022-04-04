@@ -1,0 +1,51 @@
+﻿name,description
+gender,Gender: nominal
+symptom,Symptoms: nominal
+alc,Alcohol: nominal
+hepBsurfAnti,Hepatitis B Surface Antigen: nominal
+hepBeAnti,Hepatitis B e Antigen: nominal
+hepBcorAnti,Hepatitis B Core Antibody: nominal
+hepCvirAnti,Hepatitis C Virus Antibody: nominal
+cirr,Cirrhosis : nominal
+endemicCountries,Endemic Countries: nominal
+smoke,Smoking: nominal
+diabetes,Diabetes: nominal
+obese,Obesity: nominal
+hemochro,Hemochromatosis: nominal
+artHyper,Arterial Hypertension: nominal
+chronRenal,Chronic Renal Insufficiency: nominal
+hiv,Human Immunodeficiency Virus: nominal
+Nasteato,Nonalcoholic Steatohepatitis: nominal
+esophVarices,Esophageal Varices: nominal
+spleno,Splenomegaly: nominal
+portalHyper,Portal Hypertension: nominal
+portalVeinThromb,Portal Vein Thrombosis: nominal
+LiverMeta,Liver Metastasis: nominal
+RadioHallmark,Radiological Hallmark: nominal
+Age,Age at diagnosis: integer
+aclPerDay,Grams of Alcohol per day: continuous
+cigPerYr,Packs of cigarets per year: continuous
+performance,Performance Status: ordinal
+encefalopathy,Encefalopathy degree: ordinal
+ascites,Ascites degree: ordinal
+international,International Normalised Ratio: continuous
+alphaFreto,Alpha-Fetoprotein (ng/mL): continuous
+hemaglobin,Haemoglobin (g/dL): continuous
+meanCorpusVol,Mean Corpuscular Volume (fl): continuous
+leukocyte,Leukocytes(G/L): continuous
+platelet,Platelets (G/L): continuous
+albumin,Albumin (mg/dL): continuous
+bilirubin,Total Bilirubin(mg/dL): continuous
+alanineTransaminase,Alanine transaminase (U/L): continuous
+aspartateTransaminase,Aspartate transaminase (U/L): continuous
+gammaGlutamyl,Gamma glutamyl transferase (U/L): continuous
+alkalinePhosphatase,Alkaline phosphatase (U/L): continuous
+totalProteins,Total Proteins (g/dL): continuous
+creatine,Creatinine (mg/dL): continuous
+numNodules,Number of Nodules: integer
+majorDimNode,Major dimension of nodule (cm): continuous
+directBilirubin,Direct Bilirubin (mg/dL): continuous
+iron,Iron (mcg/dL): continuous
+oxygen,Oxygen Saturation (%): continuous
+ferritin,Ferritin (ng/mL): continuous
+status,"Class: nominal (1 if patient survives, 0 if patient died)"
