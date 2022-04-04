@@ -1,0 +1,53 @@
+---
+title: "Analysis"
+output: html_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r loadPackages}
+library(dplyr)
+library(MachineShop)
+library(recipes)
+```
+
+```{r setup}
+library(doSNOW)
+registerDoSNOW(makeCluster(8))
+## Resample control object
+ctrl <- CVControl(seed = 123)
+```
+
+
+```{r}
+dat <- readRDS("./data/hcc_data.RDS")
+
+rec_base <- recipe(
+  status ~ .,
+  data = dat
+) %>%
+  role_case(stratum = status) %>%
+  check_missing(status) %>%
+  step_num2factor(status, transform = function(x) x + 1,
+                  levels = c("died", "survive"))
+
+rec_base
+```
+
+```{r}
+rec <- rec_base %>%
+  step_impute_mean(all_numeric_predictors()) %>%
+  step_impute_mode(all_nominal_predictors())
+
+model <- TunedModel(GLMNetModel(alpha = 1),
+                    grid = c(lambda = 10))
+model_fit <- fit(rec, model, control = ctrl)
+model_res <- resample(rec, model, control = ctrl)
+summary(model_res)
+plot(model_res)
+### Seems decent
+```
+
