@@ -216,6 +216,11 @@ Model Algorithms
 -xgboost/gbm/adaboost yujing
 -randomforest sangil
 ```{r}
+## Global grid size (default parameters only)
+grid.model <- TunedModel(
+  RandomForestModel,
+  grid = 5
+)
 ## Imputation via K-nearest neighbors
 (rec <- rec_base %>%
    step_impute_knn(all_predictors(), neighbors = 5) %>%
@@ -225,7 +230,7 @@ res_impute_knn <- resample(rec, model = RandomForestModel, control = ctrl)
 ## now working on model fit. 
 mspec <- ModelSpecification(
    rec,
-   model = TunedModel(RandomForestModel),
+   model = grid.model,
    control = ctrl
 ) %>% set_optim_bayes(progress = TRUE)
 mspec
