@@ -1,0 +1,241 @@
+---
+title: "Analysis"
+output: html_document
+date: "`r Sys.Date()`"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r loadPackages, message=FALSE, warning=FALSE}
+library(dplyr)
+library(MachineShop)
+library(recipes)
+library(kableExtra)
+library(arsenal)
+```
+
+```{r controlSetup, results='hide', echo=FALSE}
+library(doSNOW)
+registerDoSNOW(makeCluster(8))
+## Resample control object
+ctrl <- CVControl(seed = 123)
+```
+
+
+```{r preProcess, echo = FALSE}
+dat <- readRDS("./data/hcc_data.RDS")
+
+rec_base <- recipe(
+  status ~ .,
+  data = dat
+) %>%
+  role_case(stratum = status) %>%
+  check_missing(status) %>%
+  step_num2factor(status, transform = function(x) x + 1,
+                  levels = c("died", "survive")) %>%
+  step_num2factor(gender, transform = function(x) x + 1,
+                  levels = c("female", "male")) %>%
+  step_num2factor(symptom, transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(alc, transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hepBsurfAnti,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hepBeAnti,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hepBcorAnti,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hepCvirAnti,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(cirr,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(endemicCountries,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(smoke,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(diabetes,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(obese,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hemochro,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(artHyper,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(chronRenal,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hiv,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(Nasteato,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(esophVarices,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(spleno,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(portalHyper,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(portalVeinThromb,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(LiverMeta,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(RadioHallmark,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(numNodules,transform = function(x) x + 1,
+                  levels = as.character(0:5))
+
+dat <- bake(prep(rec_base), new_data = dat)
+```
+
+```{r summary, results='asis', echo = FALSE}
+tbl <- tableby(
+  ~ ., data = dat,
+  control = tableby.control(
+    cat.stats = c("countpct", "Nmiss"),
+    numeric.stats = c("medianrange", "Nmiss"),
+    digits = 2
+  )
+)
+
+```
+
+
+```{r fitting}
+dir.create("./data/ModelCache/")
+fnames <- paste0("./data/ModelCache/",
+                 c("lasso_fit.RDS", "lasso_res.RDS"))
+### Imputation step
+rec <- rec_base %>%
+  step_impute_mean(all_numeric_predictors()) %>%
+  step_impute_mode(all_nominal_predictors())
+
+model <- TunedModel(GLMNetModel(alpha = 1),
+                    grid = c(lambda = 10))
+
+if(file.exists(fnames[1])){
+  model_fit <- readRDS(fnames[1])
+}else{
+  model_fit <- fit(rec, model, control = ctrl)
+  saveRDS(model_fit, file = fnames[1])
+}
+
+if(file.exists(fnames[2])){
+  model_res <- readRDS(fnames[2])
+}else{
+  model_res <- resample(rec, model, control = ctrl)
+  saveRDS(model_res, file = fnames[2])
+}
+
+summary(model_res)
+plot(model_res)
+cf <- coef(unMLModelFit(model_fit))
+
+rownames(cf)[cf[,1] !=0]
+
+### nonzero variables from lasso fit
+
+nz_cf <- 
+c("symptom",
+  "hepBsurfAnti",
+  "hepCvirAnti",
+  "endemicCountries",
+  "smoke",
+  "diabetes",
+  "artHyper",
+  "Nasteato",
+  "portalHyper",
+  "ascites",
+  "international",
+  "alphaFreto",
+  "hemaglobin",
+  "leukocyte",
+  "portalVeinThromb",
+  "LiverMeta",
+  "Age",
+  "cigPerYr",
+  "performance",
+  "albumin",
+  "alanineTransaminase",
+  "aspartateTransaminase",
+  "alkalinePhosphatase",
+  "totalProteins",
+  "creatine",
+  "numNodules",
+  "majorDimNode",
+  "directBilirubin",
+  "iron",
+  "ferritin")
+
+
+rec2 <- recipe(
+  as.formula(paste0("status ~ ", paste0(nz_cf, collapse = '+'))),
+  data = dat) %>%
+  role_case(stratum = status) %>%
+  check_missing(status) %>%
+  step_impute_mean(all_numeric_predictors()) %>%
+  step_impute_mode(all_nominal_predictors())
+
+glm_fit <- fit(rec2, model =GLMModel)
+varimp(glm_fit, method = 'model', scale = FALSE) %>% plot()
+```
+
+
+```{r}
+set.seed(123123)
+test1 <- varimp(model_fit, scale = FALSE, stats = mean)
+test1 <- test1[order(rownames(test1)),]
+plot(test1)
+set.seed(123123)
+test2 <- varimp(model_fit, scale = FALSE, stats = function(x){mean(x > 0)})
+test2 <- test2[order(rownames(test2)),]
+plot(test2)
+```
+
+Data Transformations
+-different of vectors
+-pca transformation
+
+Imputation Steps
+-mean and mode imputation
+-step impute bag() FN Imputation via bagged trees
+-step impute knn() FN Imputation via K-nearest neighbors
+-step impute lower()
+-multiple impuation (MICE) not a step
+
+Filtering Variables
+-step corr() N High correlation filter
+-step lincomb()
+-step nzv() FN Near-zero variance filter
+-Distribution step zv()
+
+Model Algorithms
+
+-nnet josh
+-xgboost/gbm/adaboost yujing
+-randomforest sangil
+```{r}
+## Imputation via K-nearest neighbors
+(rec <- rec_base %>%
+   step_impute_knn(all_predictors(), neighbors = 5) %>%
+   step_dummy(all_nominal_predictors()))
+
+res_impute_knn <- resample(rec, model = RandomForestModel, control = ctrl)
+## now working on model fit. 
+mspec <- ModelSpecification(
+   rec,
+   model = TunedModel(RandomForestModel),
+   control = ctrl
+) %>% set_optim_bayes(progress = TRUE)
+mspec
+
+mlfit <- fit(mspec)
+(tuned_model <- as.MLModel(mlfit))
+summary(tuned_model)
+performance(tuned_model)
+```
+
+-stacked regression
+-logistic
+-lasso/ridge
