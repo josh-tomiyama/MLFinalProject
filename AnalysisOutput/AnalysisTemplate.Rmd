@@ -1,0 +1,88 @@
+---
+title: "Analysis"
+output: html_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r checkTemplate, echo=FALSE}
+exists("fname_base")
+exists("mspec")
+exists("rec")
+save(fname_base, mspec, rec, file = paste0(fname_base, "_template_params.rda"))
+# load(file = "knn_NNet_template_params.rda")
+```
+
+```{r loadPackages, message=FALSE, warning=FALSE}
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(MachineShop))
+suppressPackageStartupMessages(library(recipes))
+suppressPackageStartupMessages(library(kableExtra))
+suppressPackageStartupMessages(library(arsenal))
+```
+
+```{r controlSetup, results='hide', echo=FALSE}
+suppressPackageStartupMessages(library(doSNOW))
+registerDoSNOW(makeCluster(parallel::detectCores()))
+## Resample control object
+# ctrl <- CVControl(seed = 123)
+```
+
+
+```{r fitting}
+# dir.create("./data/ModelCache/")
+fnames <- paste0("../data/ModelCache/",
+                 paste0(fname_base, c("_fit.RDS", "_res.RDS"))
+                )
+
+if(file.exists(fnames[1])){
+  model_fit <- readRDS(fnames[1])
+}else{
+  model_fit <- fit(mspec, control = ctrl)
+  saveRDS(model_fit, file = fnames[1])
+}
+
+if(file.exists(fnames[2])){
+  model_res <- readRDS(fnames[2])
+}else{
+  model_res <- resample(mspec, control = ctrl)
+  saveRDS(model_res, file = fnames[2])
+}
+
+# model_fit <- as.MLModel(model_fit)
+varimp(model_fit) %>% plot()
+summary(model_res)
+plot(model_res)
+confusion(model_res)
+### nonzero variables from lasso fit
+
+```
+
+Data Transformations
+-different of vectors
+-pca transformation
+
+Imputation Steps
+-mean and mode imputation
+-step impute bag() FN Imputation via bagged trees
+-step impute knn() FN Imputation via K-nearest neighbors
+-step impute lower()
+-multiple impuation (MICE) not a step
+
+Filtering Variables
+-step corr() N High correlation filter
+-step lincomb()
+-step nzv() FN Near-zero variance filter
+-Distribution step zv()
+
+Model Algorithms
+
+-nnet josh
+-xgboost/gbm/adaboost yujing
+-randomforest sangil
+-stacked regression
+-logistic
+-lasso/ridge
