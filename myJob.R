@@ -4,10 +4,10 @@ suppressPackageStartupMessages(library(optparse))
 
 option_list <- list(
   make_option(c("-i", "--impute"), type = "character",
-              default = "MeanMode", help = "See steps_imp list names in config",
+              default = "knn", help = "See steps_imp list names in config",
               metavar="character"),
   make_option(c("-f", '--filter'), type = 'character',
-              default = "pca", help = 'See steps_filter list names in config',
+              default = "none", help = 'See steps_filter list names in config',
               metavar = 'character'),
   make_option(c("-m", "--model"), type = "character",
               default = "GLM", help = "See model list names in config",
