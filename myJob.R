@@ -65,7 +65,7 @@ if(length(step_params) > 0){
 mspec <- ModelSpecification(rec, 
                             model = models[[opt$model]],
                             control = ctrl) %>%
-  set_optim_bayes("rBayesianOptimization")
+  set_optim_bayes(packages = "rBayesianOptimization")
 
 template_list <- list("rec" = rec,
      'mspec' = mspec,
