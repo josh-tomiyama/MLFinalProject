@@ -80,24 +80,26 @@ rec_base <- recipe(
   step_num2factor(LiverMeta,transform = function(x) x + 1,
                   levels = c("no", 'yes')) %>%
   step_num2factor(RadioHallmark,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(numNodules,transform = function(x) x + 1,
-                  levels = as.character(0:5))
+                  levels = c("no", 'yes')) 
+# %>%
+#   step_num2factor(numNodules,transform = function(x) x + 1,
+#                   levels = as.character(0:5))
 
-dat <- bake(prep(rec_base), new_data = dat)
+dat2 <- bake(prep(rec_base), new_data = dat)
 ```
 
 ```{r summary, results='asis', echo = FALSE}
-tbl <- tableby(
-  ~ ., data = dat,
-  control = tableby.control(
-    cat.stats = c("countpct", "Nmiss"),
-    numeric.stats = c("medianrange", "Nmiss"),
-    digits = 2
-  )
-)
-
-summary(tbl, title = 'HCC Data Summary') 
+# tbl <- tableby(
+#   ~ ., data = dat2,
+#   control = tableby.control(
+#     cat.stats = c("countpct", "Nmiss"),
+#     numeric.stats = c("medianrange", "Nmiss"),
+#     digits = 2
+#   ),
+#   strata = status
+# )
+# 
+# summary(tbl, title = 'HCC Data Summary') 
 # %>% as.data.frame()
   # kable_styling(full_width=FALSE)
 ```
@@ -109,12 +111,20 @@ fnames <- paste0("./data/ModelCache/",
                  c("lasso_fit.RDS", "lasso_res.RDS"))
 ### Imputation step
 rec <- rec_base %>%
-  step_impute_mean(all_numeric_predictors()) %>%
-  step_impute_mode(all_nominal_predictors())
+  # step_impute_mean(all_numeric_predictors()) %>%
+  # step_impute_mode(all_nominal_predictors()) %>%
+  step_impute_knn(all_predictors(), neighbors = 1) %>%
+  step_dummy(all_nominal_predictors())
+  # step_center(all_predictors()) %>%
+  # step_scale(all_predictors())
 
 model <- TunedModel(GLMNetModel(alpha = 1),
-                    grid = c(lambda = 10))
+                    grid = c(lambda = 3))
 
+mspec <- ModelSpecification(rec,
+                            model = model,
+                            control = ctrl)
+model_fit <- fit(mspec)
 if(file.exists(fnames[1])){
   model_fit <- readRDS(fnames[1])
 }else{
@@ -131,72 +141,75 @@ if(file.exists(fnames[2])){
 
 summary(model_res)
 plot(model_res)
-cf <- coef(unMLModelFit(model_fit))
+# cf <- coef(unMLModelFit(model_fit))
+# 
+# rownames(cf)[cf[,1] !=0]
+# 
+# ### nonzero variables from lasso fit
+# 
+# nz_cf <-
+# c("symptom",
+#   "hepBsurfAnti",
+#   "hepCvirAnti",
+#   "endemicCountries",
+#   "smoke",
+#   "diabetes",
+#   "artHyper",
+#   "Nasteato",
+#   "portalHyper",
+#   "ascites",
+#   "international",
+#   "alphaFreto",
+#   "hemaglobin",
+#   "leukocyte",
+#   "portalVeinThromb",
+#   "LiverMeta",
+#   "Age",
+#   "cigPerYr",
+#   "performance",
+#   "albumin",
+#   "alanineTransaminase",
+#   "aspartateTransaminase",
+#   "alkalinePhosphatase",
+#   "totalProteins",
+#   "creatine",
+#   "numNodules",
+#   "majorDimNode",
+#   "directBilirubin",
+#   "iron",
+#   "ferritin")
 
-rownames(cf)[cf[,1] !=0]
 
-### nonzero variables from lasso fit
-
-nz_cf <- 
-c("symptom",
-  "hepBsurfAnti",
-  "hepCvirAnti",
-  "endemicCountries",
-  "smoke",
-  "diabetes",
-  "artHyper",
-  "Nasteato",
-  "portalHyper",
-  "ascites",
-  "international",
-  "alphaFreto",
-  "hemaglobin",
-  "leukocyte",
-  "portalVeinThromb",
-  "LiverMeta",
-  "Age",
-  "cigPerYr",
-  "performance",
-  "albumin",
-  "alanineTransaminase",
-  "aspartateTransaminase",
-  "alkalinePhosphatase",
-  "totalProteins",
-  "creatine",
-  "numNodules",
-  "majorDimNode",
-  "directBilirubin",
-  "iron",
-  "ferritin")
-
-
-rec2 <- recipe(
-  as.formula(paste0("status ~ ", paste0(nz_cf, collapse = '+'))),
-  data = dat) %>%
-  role_case(stratum = status) %>%
-  check_missing(status) %>%
-  step_impute_mean(all_numeric_predictors()) %>%
-  step_impute_mode(all_nominal_predictors())
-
-glm_fit <- fit(rec2, model =GLMModel)
-varimp(glm_fit, method = 'model', scale = FALSE) %>% plot()
+# rec2 <- recipe(
+#   as.formula(paste0("status ~ ", paste0(nz_cf, collapse = '+'))),
+#   data = dat) %>%
+#   role_case(stratum = status) %>%
+#   check_missing(status) %>%
+#   step_impute_mean(all_numeric_predictors()) %>%
+#   step_impute_mode(all_nominal_predictors())
+# 
+# glm_fit <- fit(rec2, model =GLMModel)
+# varimp(glm_fit, method = 'model', scale = FALSE) %>% plot()
 ```
 
 
 ```{r}
-set.seed(123123)
-test1 <- varimp(model_fit, scale = FALSE, stats = mean)
-test1 <- test1[order(rownames(test1)),]
-plot(test1)
-set.seed(123123)
-test2 <- varimp(model_fit, scale = FALSE, stats = function(x){mean(x > 0)})
-test2 <- test2[order(rownames(test2)),]
-plot(test2)
+# set.seed(123123)
+# test1 <- varimp(model_fit, scale = FALSE, stats = mean)
+# test1 <- test1[order(rownames(test1)),]
+# plot(test1)
+# set.seed(123123)
+# test2 <- varimp(model_fit, scale = FALSE, stats = function(x){mean(x > 0)})
+# test2 <- test2[order(rownames(test2)),]
+# plot(test2)
 ```
+
+
 
 Data Transformations
 -different of vectors
--pca transformation
+-pca transformation (numeric)
+-clustering (numeric)
 
 Imputation Steps
 -mean and mode imputation
@@ -214,34 +227,44 @@ Filtering Variables
 Model Algorithms
 
 -nnet josh
--xgboost/gbm/adaboost yujing
+-xgboosttreemodel/gbm/adaboost yujing
 -randomforest sangil
 ```{r}
 ## Global grid size (default parameters only)
 grid.model <- TunedModel(
-  RandomForestModel,
-  grid = 5
+  RandomForestModel(),
+  grid = 2
 )
 ## Imputation via K-nearest neighbors
-(rec <- rec_base %>%
-   step_impute_knn(all_predictors(), neighbors = 5) %>%
-   step_dummy(all_nominal_predictors()))
+rec <- rec_base %>%
+    step_impute_knn(all_predictors(), neighbors = 5) %>%
+    # step_impute_mode(all_nominal_predictors()) %>%
+    # step_impute_mean(all_numeric_predictors()) %>%
+    step_nzv(all_predictors()) %>%
+    step_dummy(all_nominal_predictors()) %>%
+    step_center(all_predictors()) %>%
+    step_scale(all_predictors())
 
-res_impute_knn <- resample(rec, model = RandomForestModel, control = ctrl)
+# test <- bake(prep(rec), new_data = dat2)
+
+# res_impute_knn <- resample(rec, model = RandomForestModel, control = ctrl)
 ## now working on model fit. 
 mspec <- ModelSpecification(
    rec,
    model = grid.model,
    control = ctrl
-) #%>% set_optim_bayes(progress = TRUE)
+) %>% set_optim_bfgs(progress = TRUE, verbose = 1)
 mspec
 
-mlfit <- fit(mspec)
-(tuned_model <- as.MLModel(mlfit))
+rf_fit <- fit(mspec)
+res_rf <- resample(mspec)
+
+# mlfit <- fit(mspec)
+(tuned_model <- as.MLModel(rf_fit))
 summary(tuned_model)
 performance(tuned_model)
 
-varimp(mlfit, method = 'model', scale = FALSE) %>% plot()
+varimp(mlfit) %>% plot()
 ```
 
 -stacked regression
