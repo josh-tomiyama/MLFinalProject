@@ -1,5 +1,4 @@
 # getwd()
-parallel::detectCores()
 suppressPackageStartupMessages(library(rmarkdown))
 suppressPackageStartupMessages(library(optparse))
 

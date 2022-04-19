@@ -26,7 +26,7 @@ suppressPackageStartupMessages(library(arsenal))
 
 ```{r controlSetup, results='hide', echo=FALSE}
 suppressPackageStartupMessages(library(doSNOW))
-registerDoSNOW(makeCluster(parallel::detectCores()))
+registerDoSNOW(makeCluster(5))
 ## Resample control object
 # ctrl <- CVControl(seed = 123)
 ```
