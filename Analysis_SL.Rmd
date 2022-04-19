@@ -245,7 +245,7 @@ rec <- rec_base %>%
     step_center(all_predictors()) %>%
     step_scale(all_predictors())
 
-# test <- bake(prep(rec), new_data = dat2)
+test <- bake(prep(rec), new_data = dat)
 
 # res_impute_knn <- resample(rec, model = RandomForestModel, control = ctrl)
 ## now working on model fit. 
@@ -253,7 +253,7 @@ mspec <- ModelSpecification(
    rec,
    model = grid.model,
    control = ctrl
-) %>% set_optim_bfgs(progress = TRUE, verbose = 1)
+) %>% set_optim_bayes(progress = TRUE, verbose = 1)
 mspec
 
 rf_fit <- fit(mspec)
