@@ -1,16 +1,17 @@
 # getwd()
+parallel::detectCores()
 suppressPackageStartupMessages(library(rmarkdown))
 suppressPackageStartupMessages(library(optparse))
 
 option_list <- list(
   make_option(c("-i", "--impute"), type = "character",
-              default = "knn", help = "See steps_imp list names in config",
+              default = "MeanMode", help = "See steps_imp list names in config",
               metavar="character"),
   make_option(c("-f", '--filter'), type = 'character',
-              default = "none", help = 'See steps_filter list names in config',
+              default = "corr", help = 'See steps_filter list names in config',
               metavar = 'character'),
   make_option(c("-m", "--model"), type = "character",
-              default = "GLM", help = "See model list names in config",
+              default = "BARTModel", help = "See model list names in config",
               metavar="character")
 )
 
