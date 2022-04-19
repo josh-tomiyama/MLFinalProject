@@ -52,6 +52,8 @@ if(opt$impute != "none"){
                         .init = rec)
 }
 
+step_params <- intersect(c(opt$impute, opt$filter), names(steps_hyper))
+
 if(length(step_params) > 0){
   steps_grid <- do.call(expand_steps, 
                         steps_hyper[step_params]
