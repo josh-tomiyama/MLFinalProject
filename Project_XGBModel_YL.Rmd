@@ -118,7 +118,7 @@ rec_knn_none <- rec_base %>%
   step_center(all_predictors()) %>%
   step_scale(all_predictors()) %>% 
   
-  step_impute_knn(all_predictors(), id = "knn") %>%
+  step_impute_knn(all_predictors(), id = "knn") 
   # step_impute_mode(all_nominal_predictors()) %>%
   # step_impute_mean(all_numeric_predictors()) 
 
