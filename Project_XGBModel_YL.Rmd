@@ -113,12 +113,13 @@ fnames <- paste0("./data/ModelCache/",
 # use knn to impute 
 # use bag to impute 
 rec_knn_none <- rec_base %>%
+  step_impute_knn(all_predictors(), id = "knn")  %>%
   step_nzv(all_predictors()) %>%
   step_dummy(all_nominal_predictors()) %>%
   step_center(all_predictors()) %>%
-  step_scale(all_predictors()) %>% 
+  step_scale(all_predictors())
   
-  step_impute_knn(all_predictors(), id = "knn") 
+  
   # step_impute_mode(all_nominal_predictors()) %>%
   # step_impute_mean(all_numeric_predictors()) 
 
@@ -160,12 +161,13 @@ fnames <- paste0("./data/ModelCache/",
 # remove predictor variables that have too many missing values by using step_nzv 
 # use knn to impute 
 rec_knn_corr <- rec_base %>%
+  step_impute_knn(all_predictors(), id = "knn") %>%
   step_nzv(all_predictors()) %>%
   step_dummy(all_nominal_predictors()) %>%
   step_center(all_predictors()) %>%
-  step_scale(all_predictors()) %>% 
+  step_scale(all_predictors()) %>%
   
-  step_impute_knn(all_predictors(), id = "knn") %>%
+  
   # step_impute_mode(all_nominal_predictors()) %>%
   # step_impute_mean(all_numeric_predictors()) 
   step_corr(all_numeric_predictors(), id = "corr")
