@@ -15,6 +15,8 @@ library(MachineShop)
 library(recipes)
 library(kableExtra)
 library(arsenal)
+library(reshape2)
+library(ggplot2)
 ```
 
 ```{r controlSetup, results='hide', echo=FALSE}
@@ -103,104 +105,290 @@ xgbtree_model <- TunedModel(XGBTreeModel,
                             )
 ```
 
-# knn, nzv, dummy, center, scale 
+# knn, nzv, dummy, center, scale
 
 ```{r knn none}
-fnames <- paste0("./data/ModelCache/",
-                 c("knn_none_xgboost_fit.RDS", "knn_none_xgboost_res.RDS"))
+# fnames <- paste0("./data/ModelCache/",
+#                  c("knn_none_xgboost_fit.RDS", "knn_none_xgboost_res.RDS"))
+fnames <- c("./knn_none_xgboost_fit.RDS", "./knn_none_xgboost_res.RDS")
 
-# remove predictor variables that have too many missing values by using step_nzv 
-# use knn to impute 
-# use bag to impute 
+# remove predictor variables that have too many missing values by using step_nzv
+# use knn to impute
+# use bag to impute
 rec_knn_none <- rec_base %>%
   step_impute_knn(all_predictors(), id = "knn")  %>%
   step_nzv(all_predictors()) %>%
   step_dummy(all_nominal_predictors()) %>%
   step_center(all_predictors()) %>%
   step_scale(all_predictors())
-  
-  
+
+
   # step_impute_mode(all_nominal_predictors()) %>%
-  # step_impute_mean(all_numeric_predictors()) 
+  # step_impute_mean(all_numeric_predictors())
 
 rec_grid_knn_none <- expand_steps(
   knn = list(neighbors = 1:5)
-) 
+)
 
-rec_tun_knn_none <- TunedInput(rec_knn_none, grid = rec_grid_knn_none) 
+rec_tun_knn_none <- TunedInput(rec_knn_none, grid = rec_grid_knn_none)
 
 mspec_tun_knn_none <- ModelSpecification(
-  rec_tun_knn_none, 
-  model = xgbtree_model, 
-  control = ctrl 
+  rec_tun_knn_none,
+  model = xgbtree_model,
+  control = ctrl
 ) %>% set_optim_bayes()
-# use bayesian optimization 
+# use bayesian optimization
 
-# get the optimal model selected 
-mlfit_knn_none <- fit(mspec_tun_knn_none) 
+# get the optimal model selected
+mlfit_knn_none <- fit(mspec_tun_knn_none)
 saveRDS(mlfit_knn_none, fnames[1])
 
-# get resampled predictive performance 
-mlres_knn_none <- resample(mspec_tun_knn_none, control = ctrl) 
+# get resampled predictive performance
+mlres_knn_none <- resample(mspec_tun_knn_none, control = ctrl)
 saveRDS(mlres_knn_none, fnames[2])
 summary(mlres_knn_none)
 
-(tuned_model_knn_none <- as.MLModel(mlfit_knn_none)) 
+(tuned_model_knn_none <- as.MLModel(mlfit_knn_none))
 summary(tuned_model_knn_none)
 
-# variable importance 
+# variable importance
 varimp(mlfit_knn_none) %>% plot()
 ```
 
-# knn, corr, nzv, dummy, center, scale 
+# knn, nzv, dummy, center, scale, corr 
 
-```{r knn corr}
-fnames <- paste0("./data/ModelCache/",
-                 c("knn_corr_xgboost_fit.RDS", "knn_corr_xgboost_res.RDS"))
+```{r knn corr} 
+# fnames <- paste0("./data/ModelCache/",
+#                  c("knn_corr_xgboost_fit.RDS", "knn_corr_xgboost_res.RDS"))
+fnames <- c("./knn_corr_xgboost_fit.RDS", "./knn_corr_xgboost_res.RDS") 
 
-# remove predictor variables that have too many missing values by using step_nzv 
-# use knn to impute 
+# remove predictor variables that have too many missing values by using step_nzv
+# use knn to impute
 rec_knn_corr <- rec_base %>%
   step_impute_knn(all_predictors(), id = "knn") %>%
   step_nzv(all_predictors()) %>%
   step_dummy(all_nominal_predictors()) %>%
   step_center(all_predictors()) %>%
   step_scale(all_predictors()) %>%
-  
-  
   # step_impute_mode(all_nominal_predictors()) %>%
-  # step_impute_mean(all_numeric_predictors()) 
+  # step_impute_mean(all_numeric_predictors())
   step_corr(all_numeric_predictors(), id = "corr")
 
 rec_grid_knn_corr <- expand_steps(
-  knn = list(neighbors = 1:5), 
+  knn = list(neighbors = 1:5),
   corr = list(threshold = c(0.75, 0.8, 0.85, 0.9))
-) 
+)
 
-rec_tun_knn_corr <- TunedInput(rec_knn_corr, grid = rec_grid_knn_corr) 
+rec_tun_knn_corr <- TunedInput(rec_knn_corr, grid = rec_grid_knn_corr)
 
 mspec_tun_knn_corr <- ModelSpecification(
-  rec_tun_knn_corr, 
-  model = xgbtree_model, 
-  control = ctrl 
+  rec_tun_knn_corr,
+  model = xgbtree_model,
+  control = ctrl
 ) %>% set_optim_bayes()
-# use bayesian optimization 
+# use bayesian optimization
 
-# get the optimal model selected 
-mlfit_knn_corr <- fit(mspec_tun_knn_corr) 
+# get the optimal model selected
+mlfit_knn_corr <- fit(mspec_tun_knn_corr)
 saveRDS(mlfit_knn_corr, fnames[1])
 
-# get resampled predictive performance 
-mlres_knn_corr <- resample(mspec_tun_knn_corr, control = ctrl) 
+# get resampled predictive performance
+mlres_knn_corr <- resample(mspec_tun_knn_corr, control = ctrl)
 saveRDS(mlres_knn_corr, fnames[2])
 summary(mlres_knn_corr)
 
-(tuned_model_knn_corr <- as.MLModel(mlfit_knn_corr)) 
+(tuned_model_knn_corr <- as.MLModel(mlfit_knn_corr))
 summary(tuned_model_knn_corr)
 
-# variable importance 
+# variable importance
 varimp(mlfit_knn_corr) %>% plot()
 ```
 
+# knn, nzv, dummy, center, scale, pca 
+
+```{r knn pca}
+# fnames <- paste0("./data/ModelCache/",
+#                  c("knn_pca_xgboost_fit.RDS", "knn_pca_xgboost_res.RDS"))
+fnames <- c("./knn_pca_xgboost_fit.RDS", "./knn_pca_xgboost_res.RDS")
+
+# remove predictor variables that have too many missing values by using step_nzv
+# use knn to impute
+rec_knn_pca <- rec_base %>%
+  step_impute_knn(all_predictors(), id = "knn") %>%
+  step_nzv(all_predictors()) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_center(all_predictors()) %>%
+  step_scale(all_predictors()) %>%
+  # step_impute_mode(all_nominal_predictors()) %>%
+  # step_impute_mean(all_numeric_predictors())
+  step_pca(all_numeric_predictors(), id = "pca")
+
+rec_grid_knn_pca <- expand_steps(
+  knn = list(neighbors = 1:5),
+  pca = list(threshold = c(0.75, 0.8, 0.85, 0.9))
+)
+
+rec_tun_knn_pca <- TunedInput(rec_knn_pca, grid = rec_grid_knn_pca)
+
+mspec_tun_knn_pca <- ModelSpecification(
+  rec_tun_knn_pca,
+  model = xgbtree_model,
+  control = ctrl
+) %>% set_optim_bayes()
+# use bayesian optimization
+
+# get the optimal model selected
+mlfit_knn_pca <- fit(mspec_tun_knn_pca)
+saveRDS(mlfit_knn_pca, fnames[1])
+
+# get resampled predictive performance
+mlres_knn_pca <- resample(mspec_tun_knn_pca, control = ctrl)
+saveRDS(mlres_knn_pca, fnames[2])
+summary(mlres_knn_pca)
+
+(tuned_model_knn_pca <- as.MLModel(mlfit_knn_pca))
+summary(tuned_model_knn_pca)
+
+# variable importance
+varimp(mlfit_knn_pca) %>% plot()
+```
+
+
+# mean, mode, nzv, dummy, center, scale, none 
+
+```{r mean mode none}
+# fnames <- paste0("./data/ModelCache/",
+#                  c("MeanMode_none_xgboost_fit.RDS", "MeanMode_none_xgboost_res.RDS"))
+fnames <- c("./MeanMode_none_xgboost_fit.RDS", "./MeanMode_none_xgboost_res.RDS")
+
+# remove predictor variables that have too many missing values by using step_nzv
+# use mean and mode to impute 
+# use bag to impute
+rec_MeanMode_none <- rec_base %>%
+  # step_impute_knn(all_predictors(), id = "knn")  %>%
+  step_impute_mode(all_nominal_predictors()) %>%
+  step_impute_mean(all_numeric_predictors()) %>%
+  step_nzv(all_predictors()) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_center(all_predictors()) %>%
+  step_scale(all_predictors())
+
+mspec_tun_MeanMode_none <- ModelSpecification(
+  rec_MeanMode_none,
+  model = xgbtree_model,
+  control = ctrl
+) %>% set_optim_bayes()
+# use bayesian optimization
+
+# get the optimal model selected
+mlfit_MeanMode_none <- fit(mspec_tun_MeanMode_none)
+saveRDS(mlfit_MeanMode_none, fnames[1])
+
+# get resampled predictive performance
+mlres_MeanMode_none <- resample(mspec_tun_MeanMode_none, control = ctrl)
+saveRDS(mlres_MeanMode_none, fnames[2])
+summary(mlres_MeanMode_none)
+
+(tuned_model_MeanMode_none <- as.MLModel(mlfit_MeanMode_none))
+summary(tuned_model_MeanMode_none)
+
+# variable importance
+varimp(mlfit_MeanMode_none) %>% plot()
+```
+
+# mean, mode, nzv, dummy, center, scale, corr 
+
+```{r mean mode corr}
+# fnames <- paste0("./data/ModelCache/",
+#                  c("MeanMode_corr_xgboost_fit.RDS", "MeanMode_corr_xgboost_res.RDS"))
+fnames <- c("./MeanMode_corr_xgboost_fit.RDS", "./MeanMode_corr_xgboost_res.RDS")
+
+# remove predictor variables that have too many missing values by using step_nzv
+# use mean and mode to impute 
+# use bag to impute
+rec_MeanMode_corr <- rec_base %>%
+  # step_impute_knn(all_predictors(), id = "knn")  %>%
+  step_impute_mode(all_nominal_predictors()) %>%
+  step_impute_mean(all_numeric_predictors()) %>%
+  step_nzv(all_predictors()) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_center(all_predictors()) %>%
+  step_scale(all_predictors()) %>% 
+  step_corr(all_numeric_predictors(), id = "corr")
+
+rec_grid_MeanMode_corr <- expand_steps( 
+  corr = list(threshold = c(0.75, 0.8, 0.85, 0.9))
+)
+
+mspec_tun_MeanMode_corr <- ModelSpecification(
+  rec_grid_MeanMode_corr,
+  model = xgbtree_model,
+  control = ctrl
+) %>% set_optim_bayes()
+# use bayesian optimization
+
+# get the optimal model selected
+mlfit_MeanMode_corr <- fit(mspec_tun_MeanMode_corr)
+saveRDS(mlfit_MeanMode_corr, fnames[1])
+
+# get resampled predictive performance
+mlres_MeanMode_corr <- resample(mspec_tun_MeanMode_corr, control = ctrl)
+saveRDS(mlres_MeanMode_corr, fnames[2])
+summary(mlres_MeanMode_corr)
+
+(tuned_model_MeanMode_corr <- as.MLModel(mlfit_MeanMode_corr))
+summary(tuned_model_MeanMode_corr)
+
+# variable importance
+varimp(mlfit_MeanMode_corr) %>% plot()
+```
+
+# mean, mode, nzv, dummy, center, scale pca 
+
+```{r mean mode pca}
+# fnames <- paste0("./data/ModelCache/",
+#                  c("MeanMode_pca_xgboost_fit.RDS", "MeanMode_pca_xgboost_res.RDS"))
+fnames <- c("./MeanMode_pca_xgboost_fit.RDS", "./MeanMode_pca_xgboost_res.RDS")
+
+# remove predictor variables that have too many missing values by using step_nzv
+# use MeanMode to impute
+rec_MeanMode_pca <- rec_base %>%
+  # step_impute_knn(all_predictors(), id = "knn") %>%
+  step_impute_mode(all_nominal_predictors()) %>%
+  step_impute_mean(all_numeric_predictors()) %>% 
+  step_nzv(all_predictors()) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_center(all_predictors()) %>%
+  step_scale(all_predictors()) %>%
+  step_pca(all_numeric_predictors(), id = "pca")
+
+rec_grid_MeanMode_pca <- expand_steps(
+  pca = list(threshold = c(0.75, 0.8, 0.85, 0.9))
+)
+
+rec_tun_MeanMode_pca <- TunedInput(rec_MeanMode_pca, grid = rec_grid_MeanMode_pca)
+
+mspec_tun_MeanMode_pca <- ModelSpecification(
+  rec_tun_MeanMode_pca,
+  model = xgbtree_model,
+  control = ctrl
+) %>% set_optim_bayes()
+# use bayesian optimization
+
+# get the optimal model selected
+mlfit_MeanMode_pca <- fit(mspec_tun_MeanMode_pca)
+saveRDS(mlfit_MeanMode_pca, fnames[1])
+
+# get resampled predictive performance
+mlres_MeanMode_pca <- resample(mspec_tun_MeanMode_pca, control = ctrl)
+saveRDS(mlres_MeanMode_pca, fnames[2])
+summary(mlres_MeanMode_pca)
+
+(tuned_model_MeanMode_pca <- as.MLModel(mlfit_MeanMode_pca))
+summary(tuned_model_MeanMode_pca)
+
+# variable importance
+varimp(mlfit_MeanMode_pca) %>% plot()
+```
 
 
