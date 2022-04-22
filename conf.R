@@ -112,7 +112,7 @@ models <- list("BARTMachineModel" = TunedModel(BARTMachineModel, control = ctrl)
                "SVMRad" = TunedModel(SVMRadialModel, control = ctrl),
                "NNet" = TunedModel(NNetModel, control = ctrl),
                "XGBTree" = TunedModel(XGBTreeModel,
-                                      grid = c('nround' = 3,
+                                      grid = c('nrounds' = 3,
                                                'eta' = 3,
                                                'max_depth' = 3),
                                       control = ctrl),
