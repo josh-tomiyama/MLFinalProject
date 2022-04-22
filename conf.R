@@ -75,13 +75,13 @@ steps_imp <- list("MeanMode" = list(f = list(step_impute_mean, step_impute_mode)
                                  list(expr(all_predictors()),
                                       id="knn")
                                  )
-                               ),
-                  "bag" = list(f = list(step_impute_bag),
-                              args= list(
-                                list(expr(all_predictors()),
-                                     seed_val = 123)
-                                )
-                          )
+                               )
+                  # "bag" = list(f = list(step_impute_bag),
+                  #             args= list(
+                  #               list(expr(all_predictors()),
+                  #                    seed_val = 123)
+                  #               )
+                  #         )
                   )
 
 ### Not do tuned inputs for now
