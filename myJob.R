@@ -10,12 +10,13 @@ option_list <- list(
               default = "corr", help = 'See steps_filter list names in config',
               metavar = 'character'),
   make_option(c("-m", "--model"), type = "character",
-              default = "BARTModel", help = "See model list names in config",
+              default = "BARTMachineModel", help = "See model list names in config",
               metavar="character")
 )
 
 opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
+opt
 source("conf.R")
 
 if(!(opt$model %in% names(models))){
@@ -45,7 +46,7 @@ rec <- rec %>%
 
 #### Filtering Steps
 
-if(opt$impute != "none"){
+if(opt$filter != "none"){
   rec <- purrr::reduce2(steps_filter[[opt$filter]]$f,
                         steps_filter[[opt$filter]]$args,
                         ~ do.call(..2, c(list(..1), ..3)), 
