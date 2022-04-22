@@ -91,17 +91,22 @@ dat2 <- bake(prep(rec_base), new_data = dat)
 
 ```{r}
 ## Define RandomForest model and its tuning grid to be tuend simultaneously with recipe input later
-grid.model <- TunedModel(RandomForestModel(),
-                          grid = expand_params(
-                            ntree = 5, 
+#grid.model <- TunedModel(RandomForestModel(),
+                         # grid = expand_params(
+                          # ntree = as.integer(c(5, 10, 15)), 
                             #number of trees to grow
-                              mtry = 10, 
+                             # mtry = as.integer(c(5, 10, 15)), 
                               #number of variables rnadomly sampled as caididates at each split
-                                nodesize = 2,
+                              #  nodesize = as.integer(c(1, 2, 3)),
                                 #minimum size of terminal nodes
-                                maxnodes = as.integer(10)
+                               # maxnodes = as.integer(c(3, 5, 10))
                                 #maximum number of terminal nodes trees in the forest can have. 
-                          )
+                        #  )
+#)
+## Global grid size (default parameters only)
+grid.model <- TunedModel(
+  RandomForestModel,
+  grid = 5
 )
 ```
 
@@ -114,7 +119,7 @@ fnames <- paste0("./data/ModelCache/",
 # use bag to impute 
 rec_knn_none <- rec_base %>%
   step_impute_knn(all_predictors(), id = "knn")  %>%
-  step_nzv(all_predictors()) %>%
+  step_nzv(all_predictors()) %>% #trying nzv first instead of knn
   step_dummy(all_nominal_predictors()) %>%
   step_center(all_predictors()) %>%
   step_scale(all_predictors())
@@ -131,11 +136,11 @@ mspec_tun_knn_none <- ModelSpecification(
 ) %>% set_optim_bayes()
 
 mlfit_knn_none <- fit(mspec_tun_knn_none) 
-#saveRDS(mlfit_knn_none, fnames[1]) There is no directory for this. 
+#saveRDS(mlfit_knn_none, fnames[1])  
 
 # get resampled predictive performance 
 mlres_knn_none <- resample(mspec_tun_knn_none, control = ctrl) 
-saveRDS(mlres_knn_none, fnames[2])
+#saveRDS(mlres_knn_none, fnames[2])
 summary(mlres_knn_none)
 (tuned_model_knn_none <- as.MLModel(mlfit_knn_none)) 
 summary(tuned_model_knn_none)
