@@ -2,6 +2,8 @@
 title: "Analysis"
 output: html_document
 date: "`r Sys.Date()`"
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -25,8 +27,8 @@ ctrl <- CVControl(seed = 123)
 
 
 ```{r preProcess, echo = FALSE}
-dat <- readRDS("./data/hcc_data.RDS")
-
+#dat <- readRDS("./data/hcc_data.RDS")
+dat <- readRDS("~/Desktop/R practice/Machine learning class spring 2022/hcc-survival/hcc_data.RDS")
 rec_base <- recipe(
   status ~ .,
   data = dat
@@ -84,189 +86,100 @@ rec_base <- recipe(
 # %>%
 #   step_num2factor(numNodules,transform = function(x) x + 1,
 #                   levels = as.character(0:5))
-
 dat2 <- bake(prep(rec_base), new_data = dat)
 ```
 
-```{r summary, results='asis', echo = FALSE}
-# tbl <- tableby(
-#   ~ ., data = dat2,
-#   control = tableby.control(
-#     cat.stats = c("countpct", "Nmiss"),
-#     numeric.stats = c("medianrange", "Nmiss"),
-#     digits = 2
-#   ),
-#   strata = status
-# )
-# 
-# summary(tbl, title = 'HCC Data Summary') 
-# %>% as.data.frame()
-  # kable_styling(full_width=FALSE)
-```
-
-
-```{r fitting}
-# dir.create("./data/ModelCache/")
-fnames <- paste0("./data/ModelCache/",
-                 c("lasso_fit.RDS", "lasso_res.RDS"))
-### Imputation step
-rec <- rec_base %>%
-  # step_impute_mean(all_numeric_predictors()) %>%
-  # step_impute_mode(all_nominal_predictors()) %>%
-  step_impute_knn(all_predictors(), neighbors = 1) %>%
-  step_dummy(all_nominal_predictors())
-  # step_center(all_predictors()) %>%
-  # step_scale(all_predictors())
-
-model <- TunedModel(GLMNetModel(alpha = 1),
-                    grid = c(lambda = 3))
-
-mspec <- ModelSpecification(rec,
-                            model = model,
-                            control = ctrl)
-model_fit <- fit(mspec)
-if(file.exists(fnames[1])){
-  model_fit <- readRDS(fnames[1])
-}else{
-  model_fit <- fit(rec, model, control = ctrl)
-  saveRDS(model_fit, file = fnames[1])
-}
-
-if(file.exists(fnames[2])){
-  model_res <- readRDS(fnames[2])
-}else{
-  model_res <- resample(rec, model, control = ctrl)
-  saveRDS(model_res, file = fnames[2])
-}
-
-summary(model_res)
-plot(model_res)
-# cf <- coef(unMLModelFit(model_fit))
-# 
-# rownames(cf)[cf[,1] !=0]
-# 
-# ### nonzero variables from lasso fit
-# 
-# nz_cf <-
-# c("symptom",
-#   "hepBsurfAnti",
-#   "hepCvirAnti",
-#   "endemicCountries",
-#   "smoke",
-#   "diabetes",
-#   "artHyper",
-#   "Nasteato",
-#   "portalHyper",
-#   "ascites",
-#   "international",
-#   "alphaFreto",
-#   "hemaglobin",
-#   "leukocyte",
-#   "portalVeinThromb",
-#   "LiverMeta",
-#   "Age",
-#   "cigPerYr",
-#   "performance",
-#   "albumin",
-#   "alanineTransaminase",
-#   "aspartateTransaminase",
-#   "alkalinePhosphatase",
-#   "totalProteins",
-#   "creatine",
-#   "numNodules",
-#   "majorDimNode",
-#   "directBilirubin",
-#   "iron",
-#   "ferritin")
-
-
-# rec2 <- recipe(
-#   as.formula(paste0("status ~ ", paste0(nz_cf, collapse = '+'))),
-#   data = dat) %>%
-#   role_case(stratum = status) %>%
-#   check_missing(status) %>%
-#   step_impute_mean(all_numeric_predictors()) %>%
-#   step_impute_mode(all_nominal_predictors())
-# 
-# glm_fit <- fit(rec2, model =GLMModel)
-# varimp(glm_fit, method = 'model', scale = FALSE) %>% plot()
-```
-
-
 ```{r}
-# set.seed(123123)
-# test1 <- varimp(model_fit, scale = FALSE, stats = mean)
-# test1 <- test1[order(rownames(test1)),]
-# plot(test1)
-# set.seed(123123)
-# test2 <- varimp(model_fit, scale = FALSE, stats = function(x){mean(x > 0)})
-# test2 <- test2[order(rownames(test2)),]
-# plot(test2)
-```
-
-
-
-Data Transformations
--different of vectors
--pca transformation (numeric)
--clustering (numeric)
-
-Imputation Steps
--mean and mode imputation
--step impute bag() FN Imputation via bagged trees
--step impute knn() FN Imputation via K-nearest neighbors
--step impute lower()
--multiple impuation (MICE) not a step
-
-Filtering Variables
--step corr() N High correlation filter
--step lincomb()
--step nzv() FN Near-zero variance filter
--Distribution step zv()
-
-Model Algorithms
-
--nnet josh
--xgboosttreemodel/gbm/adaboost yujing
--randomforest sangil
-```{r}
-## Global grid size (default parameters only)
-grid.model <- TunedModel(
-  RandomForestModel(),
-  grid = 2
+## Define RandomForest model and its tuning grid to be tuend simultaneously with recipe input later
+grid.model <- TunedModel(RandomForestModel(),
+                          grid = expand_params(
+                            ntree = 5, 
+                            #number of trees to grow
+                              mtry = 10, 
+                              #number of variables rnadomly sampled as caididates at each split
+                                nodesize = 2,
+                                #minimum size of terminal nodes
+                                maxnodes = as.integer(10)
+                                #maximum number of terminal nodes trees in the forest can have. 
+                          )
 )
-## Imputation via K-nearest neighbors
-rec <- rec_base %>%
-    step_impute_knn(all_predictors(), neighbors = 5) %>%
-    # step_impute_mode(all_nominal_predictors()) %>%
-    # step_impute_mean(all_numeric_predictors()) %>%
-    step_nzv(all_predictors()) %>%
-    step_dummy(all_nominal_predictors()) %>%
-    step_center(all_predictors()) %>%
-    step_scale(all_predictors())
-
-test <- bake(prep(rec), new_data = dat)
-
-# res_impute_knn <- resample(rec, model = RandomForestModel, control = ctrl)
-## now working on model fit. 
-mspec <- ModelSpecification(
-   rec,
-   model = grid.model,
-   control = ctrl
-) %>% set_optim_bayes(progress = TRUE, verbose = 1)
-mspec
-
-rf_fit <- fit(mspec)
-res_rf <- resample(mspec)
-
-# mlfit <- fit(mspec)
-(tuned_model <- as.MLModel(rf_fit))
-summary(tuned_model)
-performance(tuned_model)
-
-varimp(mlfit) %>% plot()
 ```
 
--stacked regression
--logistic
--lasso/ridge
+```{r}
+#KNN
+fnames <- paste0("./data/ModelCache/",
+                 c("knn_none_RForest_fit.RDS", "knn_none_RForest_res.RDS"))
+# remove predictor variables that have too many missing values by using step_nzv 
+# use knn to impute 
+# use bag to impute 
+rec_knn_none <- rec_base %>%
+  step_impute_knn(all_predictors(), id = "knn")  %>%
+  step_nzv(all_predictors()) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_center(all_predictors()) %>%
+  step_scale(all_predictors())
+  # step_impute_mode(all_nominal_predictors()) %>%
+  # step_impute_mean(all_numeric_predictors()) 
+rec_grid_knn_none <- expand_steps(
+  knn = list(neighbors = 1:5)
+) 
+rec_tun_knn_none <- TunedInput(rec_knn_none, grid = rec_grid_knn_none) 
+mspec_tun_knn_none <- ModelSpecification(
+  rec_tun_knn_none, 
+  model = grid.model, 
+  control = ctrl 
+) %>% set_optim_bayes()
+
+mlfit_knn_none <- fit(mspec_tun_knn_none) 
+#saveRDS(mlfit_knn_none, fnames[1]) There is no directory for this. 
+
+# get resampled predictive performance 
+mlres_knn_none <- resample(mspec_tun_knn_none, control = ctrl) 
+saveRDS(mlres_knn_none, fnames[2])
+summary(mlres_knn_none)
+(tuned_model_knn_none <- as.MLModel(mlfit_knn_none)) 
+summary(tuned_model_knn_none)
+# variable importance 
+varimp(mlfit_knn_none) %>% plot()
+```
+
+```{r}
+# knn, corr, nzv, dummy, center, scale 
+fnames <- paste0("./data/ModelCache/",
+                 c("knn_corr_RForest_fit.RDS", "knn_corr_RForest_res.RDS"))
+# remove predictor variables that have too many missing values by using step_nzv 
+# use knn to impute 
+rec_knn_corr <- rec_base %>%
+  step_impute_knn(all_predictors(), id = "knn") %>%
+  step_nzv(all_predictors()) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_center(all_predictors()) %>%
+  step_scale(all_predictors()) %>%
+  
+  
+  # step_impute_mode(all_nominal_predictors()) %>%
+  # step_impute_mean(all_numeric_predictors()) 
+  step_corr(all_numeric_predictors(), id = "corr")
+rec_grid_knn_corr <- expand_steps(
+  knn = list(neighbors = 1:5), 
+  corr = list(threshold = c(0.75, 0.8, 0.85, 0.9))
+) 
+rec_tun_knn_corr <- TunedInput(rec_knn_corr, grid = rec_grid_knn_corr) 
+mspec_tun_knn_corr <- ModelSpecification(
+  rec_tun_knn_corr, 
+  model = grid.model, 
+  control = ctrl 
+) %>% set_optim_bayes()
+# use bayesian optimization 
+# get the optimal model selected 
+mlfit_knn_corr <- fit(mspec_tun_knn_corr) #Same issue as above
+#saveRDS(mlfit_knn_corr, fnames[1])
+# get resampled predictive performance 
+mlres_knn_corr <- resample(mspec_tun_knn_corr, control = ctrl) 
+#saveRDS(mlres_knn_corr, fnames[2])
+summary(mlres_knn_corr)
+(tuned_model_knn_corr <- as.MLModel(mlfit_knn_corr)) 
+summary(tuned_model_knn_corr)
+# variable importance 
+varimp(mlfit_knn_corr) %>% plot()
+```
