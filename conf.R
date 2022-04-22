@@ -108,9 +108,14 @@ steps_hyper <- list("knn" = list(neighbors = 1:5),
 
 # steps_grid <- do.call(expand_steps, c(steps_hyper['knn'],steps_hyper['pca']))
 
-models <- list("BARTModel" = TunedModel(BARTModel, control = ctrl),
+models <- list("BARTMachineModel" = TunedModel(BARTMachineModel, control = ctrl),
                "SVMRad" = TunedModel(SVMRadialModel, control = ctrl),
                "NNet" = TunedModel(NNetModel, control = ctrl),
+               "XGBTree" = TunedModel(XGBTreeModel,
+                                      grid = c('nround' = 3,
+                                               'eta' = 3,
+                                               'max_depth' = 3),
+                                      control = ctrl),
                "GLM" = GLMModel)
 
 
