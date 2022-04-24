@@ -1,0 +1,134 @@
+---
+title: "Machine Learning Applied to Hepatocellular Carcinoma"
+author: "Sangil Lee, Yujing Lu, Josh Tomiyama"
+date: "`r Sys.Date()`"
+output: beamer_presentation
+---
+  
+```{r loadPackages, echo = FALSE, message=FALSE, warning=FALSE}
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(MachineShop))
+suppressPackageStartupMessages(library(recipes))
+suppressPackageStartupMessages(library(kableExtra))
+suppressPackageStartupMessages(library(arsenal))
+```  
+  
+# Background of Hepatocellular Carcinoma (HCC)
+
+# Dataset Summary
+
+```{r, echo = FALSE}
+dat <- readRDS("./data/hcc_data.RDS")
+# dat <- readRDS("~/Desktop/R practice/Machine learning class spring 2022/hcc-survival/hcc_data.RDS")
+rec_base <- recipe(
+  status ~ .,
+  data = dat
+) %>%
+  role_case(stratum = status) %>%
+  check_missing(status) %>%
+  step_num2factor(status, transform = function(x) x + 1,
+                  levels = c("died", "survive")) %>%
+  step_num2factor(gender, transform = function(x) x + 1,
+                  levels = c("female", "male")) %>%
+  step_num2factor(symptom, transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(alc, transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hepBsurfAnti,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hepBeAnti,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hepBcorAnti,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hepCvirAnti,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(cirr,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(endemicCountries,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(smoke,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(diabetes,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(obese,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hemochro,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(artHyper,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(chronRenal,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hiv,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(Nasteato,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(esophVarices,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(spleno,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(portalHyper,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(portalVeinThromb,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(LiverMeta,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(RadioHallmark,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) 
+# %>%
+#   step_num2factor(numNodules,transform = function(x) x + 1,
+#                   levels = as.character(0:5))
+dat2 <- bake(prep(rec_base), new_data = dat)
+```
+
+```{r summary, results='asis', echo = FALSE}
+cnm <- colnames(dat2)
+
+tbl <- tableby(
+  ~ ., data = dat2,
+  control = tableby.control(
+    cat.stats = c("countpct", "Nmiss"),
+    numeric.stats = c("medianrange", "Nmiss"),
+    digits = 2
+  )
+)
+
+summary(tbl, title = 'HCC Data Summary') 
+# %>% as.data.frame()
+  # kable_styling(full_width=FALSE)
+```
+
+# Random Forest Model
+
+## Description
+
+## Estimated Performance
+
+## Calibration Plots
+
+## Variable Importance
+
+## Partial Dependence
+
+# XGBoost Model
+
+## Description
+
+## Estimated Performance
+
+## Calibration Plots
+
+## Variable Importance
+
+## Partial Dependence
+
+# Neural Network
+
+## Description
+
+## Estimated Performance
+
+## Calibration Plots
+
+## Variable Importance
+
+## Partial Dependence
