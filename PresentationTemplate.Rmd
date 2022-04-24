@@ -2,7 +2,9 @@
 title: "Machine Learning Applied to Hepatocellular Carcinoma"
 author: "Sangil Lee, Yujing Lu, Josh Tomiyama"
 date: "`r Sys.Date()`"
-output: beamer_presentation
+output: 
+  beamer_presentation:
+    slide_level: 2
 ---
   
 ```{r loadPackages, echo = FALSE, message=FALSE, warning=FALSE}
@@ -14,6 +16,14 @@ suppressPackageStartupMessages(library(arsenal))
 ```  
   
 # Background of Hepatocellular Carcinoma (HCC)
+
+## Next Slide
+
+-Bullet Point 1
+
+-Bullet Point 2
+
+-Bullet Point 3
 
 # Dataset Summary
 
