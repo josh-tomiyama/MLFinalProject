@@ -1,0 +1,153 @@
+---
+title: "Machine Learning Applied to Hepatocellular Carcinoma"
+author: "Sangil Lee, Yujing Lu, Josh Tomiyama"
+date: "`r Sys.Date()`"
+output: 
+  beamer_presentation:
+    slide_level: 2
+editor_options: 
+  chunk_output_type: console
+---
+  
+```{r loadPackages, echo = FALSE, message=FALSE, warning=FALSE}
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(MachineShop))
+suppressPackageStartupMessages(library(recipes))
+suppressPackageStartupMessages(library(kableExtra))
+suppressPackageStartupMessages(library(arsenal))
+```  
+  
+# Background of Hepatocellular Carcinoma (HCC)
+Liver cancer is the sixth most frequently diagnosed cancer and, especially, Hepatocellular Carcinoma (HCC) represents more than 90% of primary liver malignancy. Clinicians assess a patient's treatment on the basis of evidence, which may not always apply to a specific case, given the biological variability among individuals. Over the years, and for the particular case of HCC, studies have developed strategies for assisting clinicians in decision making, using data mining methods to extract knowledge from the clinical data. However, these studies have shortcomings: some did not focus entirely on HCC patients, others used strict application boundaries, and none considered the heterogeneity between patients nor the presence of missing data. Using the HCC dataset, we undertook the data mining approach to evaluate the patient level factors to identify those who are at risk of one year mortality. 
+
+#Descriptive summary statistics for the dataset
+
+As for the data source, we usd Hepatocellular Carcinoma dataset (HCC dataset) collected at a University Hospital in Portugal, which contains real clinical data of 165 patients diagnosed with HCC.  The HCC data contains several demographic, risk factors, laboratory and overall survival features of 165 real patients. The dataset contains 49 features selected according to the EASL-EORTC (European Association for the Study of the Liver - European Organization for Research and Treatment of Cancer) Clinical Practice Guidelines, which are the current state-of-the-art on the management of HCC. 
+
+This is an heterogeneous dataset, with 23 quantitative variables, and 26 qualitative variables. Overall, missing data represents 10.22% of the whole dataset and only eight patients have complete information in all fields (4.85%). The target variables is the survival at 1 year, and was encoded as a binary variable: 0 (dies) and 1 (lives). A certain degree of class-imbalance is also present (63 cases labeled as dead and 102 as alive). 
+
+Citation. Miriam Seoane Santos, Pedro Henriques Abreu, Pedro J Garcia-Laencina, Adelia Simao, Armando Carvalho, A new cluster-based oversampling method for improving survival prediction of hepatocellular carcinoma patients, Journal of biomedical informatics, 58, 49-59, 2015.
+
+## Next Slide
+
+-Bullet Point 1
+
+-Bullet Point 2
+
+-Bullet Point 3
+
+# Dataset Summary
+Table 1 shows the demographic characteristics stratified by status. Overall, this dataset included a total of 165 subjects. About 80% were male, 74% had alcohol related liver disease, 27% had hepatitis B, 21% had hepatitis C, and 90% had cirrhosis. Additional lab values, other comorbidities, and status are also listed. 
+```{r, echo = FALSE}
+dat <- readRDS("./data/hcc_data.RDS")
+# dat <- readRDS("~/Desktop/R practice/Machine learning class spring 2022/hcc-survival/hcc_data.RDS")
+rec_base <- recipe(
+  status ~ .,
+  data = dat
+) %>%
+  role_case(stratum = status) %>%
+  check_missing(status) %>%
+  step_num2factor(status, transform = function(x) x + 1,
+                  levels = c("died", "survive")) %>%
+  step_num2factor(gender, transform = function(x) x + 1,
+                  levels = c("female", "male")) %>%
+  step_num2factor(symptom, transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(alc, transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hepBsurfAnti,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hepBeAnti,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hepBcorAnti,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hepCvirAnti,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(cirr,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(endemicCountries,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(smoke,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(diabetes,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(obese,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hemochro,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(artHyper,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(chronRenal,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(hiv,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(Nasteato,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(esophVarices,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(spleno,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(portalHyper,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(portalVeinThromb,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(LiverMeta,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) %>%
+  step_num2factor(RadioHallmark,transform = function(x) x + 1,
+                  levels = c("no", 'yes')) 
+# %>%
+#   step_num2factor(numNodules,transform = function(x) x + 1,
+#                   levels = as.character(0:5))
+dat2 <- bake(prep(rec_base), new_data = dat)
+```
+
+```{r summary, results='asis', echo = FALSE}
+cnm <- colnames(dat2)
+tbl <- tableby(
+  ~ ., data = dat2,
+  control = tableby.control(
+    cat.stats = c("countpct", "Nmiss"),
+    numeric.stats = c("medianrange", "Nmiss"),
+    digits = 2
+  )
+)
+summary(tbl, title = 'HCC Data Summary') 
+# %>% as.data.frame()
+  # kable_styling(full_width=FALSE)
+```
+
+# Random Forest Model
+
+## Description
+
+## Estimated Performance
+
+## Calibration Plots
+
+## Variable Importance
+
+## Partial Dependence
+
+# XGBoost Model
+
+## Description
+
+## Estimated Performance
+
+## Calibration Plots
+
+## Variable Importance
+
+## Partial Dependence
+
+# Neural Network
+
+## Description
+
+## Estimated Performance
+
+## Calibration Plots
+
+## Variable Importance
+
+## Partial Dependence
