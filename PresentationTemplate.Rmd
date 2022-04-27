@@ -4,108 +4,54 @@ author: "Sangil Lee, Yujing Lu, Josh Tomiyama"
 date: "`r Sys.Date()`"
 output: 
   beamer_presentation:
+    theme: "Darmstadt"
+    colortheme: "crane"
+    incremental: true
     slide_level: 2
+bibliography: references.bib
+nocite: '@*'
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
   
 ```{r loadPackages, echo = FALSE, message=FALSE, warning=FALSE}
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(knitr))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(MachineShop))
 suppressPackageStartupMessages(library(recipes))
 suppressPackageStartupMessages(library(kableExtra))
 suppressPackageStartupMessages(library(arsenal))
+if(!dir.exists("./vi_cache/")){
+  dir.create("./vi_cache/")
+}
 ```  
   
-# Background of Hepatocellular Carcinoma (HCC)
+# Background HCC
 
-## Next Slide
+## HepatoCellular Carcinoma (HCC)
 
--Bullet Point 1
+* HepatoCellular Carcinoma (HCC) 6th most frequently diagnosed cancer. 
 
--Bullet Point 2
+* Data mining approach to tailor evaluation and treatment for HCC are limited in the literature.
 
--Bullet Point 3
+* Using the HCC dataset, we undertook the data mining approach to evaluate the patient level factors to identify those who are at risk of one year mortality. 
 
-# Dataset Summary
+## Dataset Summary
 
-```{r, echo = FALSE}
-dat <- readRDS("./data/hcc_data.RDS")
-# dat <- readRDS("~/Desktop/R practice/Machine learning class spring 2022/hcc-survival/hcc_data.RDS")
-rec_base <- recipe(
-  status ~ .,
-  data = dat
-) %>%
-  role_case(stratum = status) %>%
-  check_missing(status) %>%
-  step_num2factor(status, transform = function(x) x + 1,
-                  levels = c("died", "survive")) %>%
-  step_num2factor(gender, transform = function(x) x + 1,
-                  levels = c("female", "male")) %>%
-  step_num2factor(symptom, transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(alc, transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(hepBsurfAnti,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(hepBeAnti,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(hepBcorAnti,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(hepCvirAnti,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(cirr,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(endemicCountries,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(smoke,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(diabetes,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(obese,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(hemochro,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(artHyper,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(chronRenal,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(hiv,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(Nasteato,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(esophVarices,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(spleno,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(portalHyper,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(portalVeinThromb,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(LiverMeta,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) %>%
-  step_num2factor(RadioHallmark,transform = function(x) x + 1,
-                  levels = c("no", 'yes')) 
-# %>%
-#   step_num2factor(numNodules,transform = function(x) x + 1,
-#                   levels = as.character(0:5))
-dat2 <- bake(prep(rec_base), new_data = dat)
-```
+* HepatoCellular Carcinoma dataset (HCC dataset) 
 
-```{r summary, results='asis', echo = FALSE}
-cnm <- colnames(dat2)
+* Clinical data of 165 pts with HCC (demographic, risk factors, lab data, and survival features)
 
-tbl <- tableby(
-  ~ ., data = dat2,
-  control = tableby.control(
-    cat.stats = c("countpct", "Nmiss"),
-    numeric.stats = c("medianrange", "Nmiss"),
-    digits = 2
-  )
-)
+* 49 features from HCC clinical practice guidelines (Table 1)
 
-summary(tbl, title = 'HCC Data Summary') 
-# %>% as.data.frame()
-  # kable_styling(full_width=FALSE)
-```
+* About 80% male, 74% had alochol related liver disease, 27% had hepatitis B, 21 % had hepatitis C, and 90% had cirrhosis. 
+
+* Missing data represents 10.22% of the whole dataset and only eight patients have complete information in all fields (4.85%). 
+
+* The target variable is the survival at 1 year, coded as 0 (dies) and 1 (lives). 
 
 # Random Forest Model
 
@@ -131,14 +77,119 @@ summary(tbl, title = 'HCC Data Summary')
 
 ## Partial Dependence
 
-# Neural Network
+# Support Vector Machine Model
 
 ## Description
 
+```{r, cache = TRUE}
+fit_jt <- readRDS("./data/ModelCache/knn_none_SVMRad_fit.RDS")
+sfit <- summary(as.MLModel(fit_jt))
+hyperparam <- Reduce(cbind, sfit$TrainingStep1$params[sfit$TrainingStep1$selected,])
+
+```
+
+
+* A support vector machine attempts to draw a non-linear boundary to classify the outcome by transforming the predictors using basis functions
+
+* In this transformed space, find linear boundaries using support vector classifier.
+
+* We just need to know the kernel function on the basis functions, don't need to know basis function itself. 
+
+* Radial Basis kernel function: $\exp(-\sigma^2\Vert x - x' \Vert^2)$; $\sigma =$ `r hyperparam$sigma`
+
+* Cost of misclassification C =`r hyperparam$C`
+
+* imputation using knn with neighbors = 4
+
+
 ## Estimated Performance
+
+```{r, cache = TRUE}
+resamp_jt <- readRDS("./data/ModelCache/knn_none_SVMRad_res.RDS")
+sres_jt <- as.data.frame(summary(resamp_jt))
+as.data.frame(sres_jt) %>% 
+  pivot_wider(names_from = Statistic, values_from = Value) %>%
+  kable(caption = "SVMRad results with knn imputation",
+        digits = 3) %>%
+  kable_styling(full_width = FALSE)
+```
+
 
 ## Calibration Plots
 
+```{r out.height="70%", out.width="70%", fig.align='center', results='hide'}
+plot(calibration(resamp_jt))
+```
+
+* Decently calibrated. Low probabilities have many false negatives.
+
 ## Variable Importance
 
-## Partial Dependence
+```{r warning=FALSE, out.width="80%", out.height="80%", fig.align='center', cache = TRUE}
+set.seed(123123)
+if(file.exists("./vi_cache/knn_none_SVMRad_vi.RDS")){
+  vi_jt <- readRDS("./vi_cache/knn_none_SVMRad_vi.RDS")
+}else{
+  vi_jt <- varimp(fit_jt)
+  saveRDS(vi_jt, "./vi_cache/knn_none_SVMRad_vi.RDS")
+}
+plot(vi_jt, n=15)
+```
+
+## Variable Importance
+
+\begin{itemize}
+  \item { Symptoms (performance)}
+
+  \item { Indicators of liver injury/disease/infection (hepBsurfAnti, hepCvirAnti,aspartateTransaminase, alkalinePhosphatase, ferritin, totalProteins, ascites, hemoglobin)}
+
+  \item { Biological Characteristics (age, portalVeinThromb)}
+
+  \item { Risk factors (diabetes, artHyper)}
+  
+  \item {behavioral/demographic (endemicCountries, cigPerYr)}
+\end{itemize}
+
+
+## Partial Dependence: diabetes
+
+```{r results='hide'}
+pd <- dependence(fit_jt, select = c(diabetes))
+plot(pd)
+```
+
+## Partial Dependence: ferritin
+
+```{r results='hide'}
+pd <- dependence(fit_jt, select = c(ferritin))
+plot(pd)
+```
+
+
+## Partial Dependence ascites
+
+```{r results='hide'}
+pd <- dependence(fit_jt, select = c(ascites))
+plot(pd)
+```
+
+## Partial Dependence: artHyper
+
+```{r results='hide'}
+pd <- dependence(fit_jt, select = c(hepCvirAnti))
+plot(pd)
+```
+
+
+## Partial Dependence: symptom
+
+```{r, warning=FALSE, results='hide'}
+pd <- dependence(fit_jt, select = c(artHyper))
+plot(pd)
+```
+
+# Final Model
+
+* Final model was chosen by the model with the highest Sensitivity - 2SD
+
+# References {.allowframebreaks}
