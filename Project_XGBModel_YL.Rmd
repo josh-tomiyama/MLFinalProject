@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
 library(MachineShop)
 library(recipes)
-library(kableExtra)
+#library(kableExtra)
 library(arsenal)
 library(reshape2)
 library(ggplot2)
@@ -320,8 +320,11 @@ rec_grid_MeanMode_corr <- expand_steps(
   corr = list(threshold = c(0.75, 0.8, 0.85, 0.9))
 )
 
+rec_tun_MeanMode_corr <- TunedInput(rec_MeanMode_corr, 
+                               grid = rec_grid_MeanMode_corr)
+
 mspec_tun_MeanMode_corr <- ModelSpecification(
-  rec_grid_MeanMode_corr,
+  rec_tun_MeanMode_corr,
   model = xgbtree_model,
   control = ctrl
 ) %>% set_optim_bayes()
