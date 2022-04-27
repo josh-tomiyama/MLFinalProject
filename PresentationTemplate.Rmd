@@ -134,22 +134,66 @@ summary(tbl, title = 'Table 1. HCC Data Summary')
 
 ## Description
 
-* Tree model
+```{r, cache = TRUE}
+fit_sl <- readRDS("./data/ModelCache/knn_corr_RForest_fit.RDS")
+sfit_sl <- summary(as.MLModel(fit_sl))
+hyperparam_sl <- Reduce(cbind, sfit_sl$TrainingStep1$params[sfit_sl$TrainingStep1$selected,])
+```
+
+* RF is a modification of bagging that is comparable to boosting but is simpler to train and tune- works by building and averaging a large collection of de-correlated trees.
 
 * 10 fold CV
 
-* hyperparameters tuned by Bayesian Optimization
+* Hyperparameter- TunedModel fnc with 
 
-* KNN imputation
+  -ntree = 500,
+
+  -mtry = .(if (is.factor(y)) floor(sqrt(nvars)) else max(floor(nvars / 3), 1))
+
+  -nodesize = .(if (is.factor(y)) 1 else 5))
+
+* Applied and tuned KNN imputation and Correlation Filter
 
 
 ## Estimated Performance
 
+```{r, cache = TRUE}
+resamp_sl <- readRDS("./data/ModelCache/knn_corr_RForest_res.RDS")
+sres_sl<- as.data.frame(summary(resamp_sl))
+sres_sl_df <- as.data.frame(sres_sl) %>% 
+  pivot_wider(names_from = Statistic, values_from = Value) 
+
+sres_sl_df %>%
+  kable(caption = "RF results with knn imputation and corr filter",
+        digits = 3) %>%
+  kable_styling(full_width = FALSE)
+```
+
 ## Calibration Plots
+
+```{r out.height="70%", out.width="70%", fig.align='center', results='hide'}
+plot(calibration(resamp_sl), se = TRUE)
+```
 
 ## Variable Importance
 
+```{r warning=FALSE, out.width="80%", out.height="80%", fig.align='center', cache = TRUE}
+set.seed(123123)
+if(file.exists("./vi_cache/knn_corr_RForest_vi.RDS")){
+  vi_sl <- readRDS("./vi_cache/knn_corr_RForest_vi.RDS")
+}else{
+  vi_sl <- varimp(fit_sl)
+  saveRDS(vi_sl, "./vi_cache/knn_corr_RForest_vi.RDS")
+}
+plot(vi_sl, n=5)
+```
+
 ## Partial Dependence
+
+```{r results='hide'}
+pd_sl <- dependence(fit_sl, select = c(alphaFreto))
+plot(pd_sl)
+```
 
 # XGBoost Model
 
@@ -225,37 +269,37 @@ kable(xgboost_all_mean_tab)
 ```
 
 ```{r xgboost estimated performance, cache=TRUE}
-# res_knn_none <- readRDS("./data/ModelCache/knn_none_xgboost_res.RDS")
-# res_knn_corr <- readRDS("./data/ModelCache/knn_corr_xgboost_res.RDS")
-# res_knn_pca <- readRDS("./data/ModelCache/knn_pca_xgboost_res.RDS")
-# res_meanmode_none <- readRDS("./data/ModelCache/MeanMode_none_xgboost_res.RDS")
-# res_meanmode_corr <- readRDS("./data/ModelCache/MeanMode_corr_xgboost_res.RDS")
-# res_meanmode_pca <- readRDS("./data/ModelCache/MeanMode_pca_xgboost_res.RDS")
-# 
-# # res_knn_none <- readRDS("H:/BIOS_6720/Project_YL/knn_none_xgboost_res.RDS")
-# # res_knn_corr <- readRDS("H:/BIOS_6720/Project_YL/knn_corr_xgboost_res.RDS")
-# # res_knn_pca <- readRDS("H:/BIOS_6720/Project_YL/knn_pca_xgboost_res.RDS")
-# # res_meanmode_none <- readRDS("H:/BIOS_6720/Project_YL/MeanMode_none_xgboost_res.RDS")
-# # res_meanmode_corr <- readRDS("H:/BIOS_6720/Project_YL/MeanMode_corr_xgboost_res.RDS")
-# # res_meanmode_pca <- readRDS("H:/BIOS_6720/Project_YL/MeanMode_pca_xgboost_res.RDS")
-# 
-# res <- c(KNN_none = res_knn_none,
-#          KNN_corr = res_knn_corr,
-#          KNN_pca = res_knn_pca,
-#          MeanMode_none = res_meanmode_none,
-#          MeanMode_corr = res_meanmode_corr,
-#          MeanMode_pca = res_meanmode_pca
-# )
-# res_sum <- summary(res)
-# res_mean_sum <- cbind(res_sum[, , Metric = "Brier"][, 1],
-#       res_sum[, , Metric = "Accuracy"][, 1],
-#       res_sum[, , Metric = "Kappa"][, 1],
-#       res_sum[, , Metric = "ROC AUC"][, 1],
-#       res_sum[, , Metric = "Sensitivity"][, 1],
-#       res_sum[, , Metric = "Specificity"][, 1])
-# colnames(res_mean_sum) <- c("Brier", "Accuracy", "Kappa", "ROC AUC",
-#                             "Sensitivity", "Specificity")
-# kable(res_mean_sum)
+res_knn_none <- readRDS("./data/ModelCache/knn_none_xgboost_res.RDS")
+res_knn_corr <- readRDS("./data/ModelCache/knn_corr_xgboost_res.RDS")
+res_knn_pca <- readRDS("./data/ModelCache/knn_pca_xgboost_res.RDS")
+res_meanmode_none <- readRDS("./data/ModelCache/MeanMode_none_xgboost_res.RDS")
+res_meanmode_corr <- readRDS("./data/ModelCache/MeanMode_corr_xgboost_res.RDS")
+res_meanmode_pca <- readRDS("./data/ModelCache/MeanMode_pca_xgboost_res.RDS")
+
+# res_knn_none <- readRDS("H:/BIOS_6720/Project_YL/knn_none_xgboost_res.RDS")
+# res_knn_corr <- readRDS("H:/BIOS_6720/Project_YL/knn_corr_xgboost_res.RDS")
+# res_knn_pca <- readRDS("H:/BIOS_6720/Project_YL/knn_pca_xgboost_res.RDS")
+# res_meanmode_none <- readRDS("H:/BIOS_6720/Project_YL/MeanMode_none_xgboost_res.RDS")
+# res_meanmode_corr <- readRDS("H:/BIOS_6720/Project_YL/MeanMode_corr_xgboost_res.RDS")
+# res_meanmode_pca <- readRDS("H:/BIOS_6720/Project_YL/MeanMode_pca_xgboost_res.RDS")
+
+res <- c(KNN_none = res_knn_none,
+         KNN_corr = res_knn_corr,
+         KNN_pca = res_knn_pca,
+         MeanMode_none = res_meanmode_none,
+         MeanMode_corr = res_meanmode_corr,
+         MeanMode_pca = res_meanmode_pca
+)
+res_sum <- summary(res)
+res_mean_sum <- cbind(res_sum[, , Metric = "Brier"][, 1],
+      res_sum[, , Metric = "Accuracy"][, 1],
+      res_sum[, , Metric = "Kappa"][, 1],
+      res_sum[, , Metric = "ROC AUC"][, 1],
+      res_sum[, , Metric = "Sensitivity"][, 1],
+      res_sum[, , Metric = "Specificity"][, 1])
+colnames(res_mean_sum) <- c("Brier", "Accuracy", "Kappa", "ROC AUC",
+                            "Sensitivity", "Specificity")
+kable(res_mean_sum)
 ```
 
 * All models are not doing well for specificity.
@@ -265,11 +309,11 @@ kable(xgboost_all_mean_tab)
 ## Estimated Performance II
 
 ```{r xgboost estiamted performance plot}
-# plot(res)
+plot(res)
 ```
 
 ```{r xgboost estiamted performance t.test, echo = FALSE}
-# t.test(diff(res))
+t.test(diff(res))
 ```
 
 ## Calibration Plots
@@ -316,7 +360,6 @@ plot(pd)
 fit_jt <- readRDS("./data/ModelCache/knn_none_SVMRad_fit.RDS")
 sfit <- summary(as.MLModel(fit_jt))
 hyperparam <- Reduce(cbind, sfit$TrainingStep1$params[sfit$TrainingStep1$selected,])
-
 ```
 
 
@@ -330,7 +373,7 @@ hyperparam <- Reduce(cbind, sfit$TrainingStep1$params[sfit$TrainingStep1$selecte
 
 * Cost of misclassification C =`r hyperparam$C`
 
-* imputation using knn with neighbors = 4
+* imputation using KNN with neighbors = 4
 
 
 ## Estimated Performance
@@ -338,8 +381,10 @@ hyperparam <- Reduce(cbind, sfit$TrainingStep1$params[sfit$TrainingStep1$selecte
 ```{r, cache = TRUE}
 resamp_jt <- readRDS("./data/ModelCache/knn_none_SVMRad_res.RDS")
 sres_jt <- as.data.frame(summary(resamp_jt))
-as.data.frame(sres_jt) %>% 
-  pivot_wider(names_from = Statistic, values_from = Value) %>%
+sres_jt_df <- as.data.frame(sres_jt) %>% 
+  pivot_wider(names_from = Statistic, values_from = Value) 
+
+sres_jt_df %>%
   kable(caption = "SVMRad results with knn imputation",
         digits = 3) %>%
   kable_styling(full_width = FALSE)
@@ -349,7 +394,7 @@ as.data.frame(sres_jt) %>%
 ## Calibration Plots
 
 ```{r out.height="70%", out.width="70%", fig.align='center', results='hide'}
-plot(calibration(resamp_jt))
+plot(calibration(resamp_jt), se = TRUE)
 ```
 
 * Decently calibrated. Low probabilities have many false negatives.
@@ -419,8 +464,30 @@ pd <- dependence(fit_jt, select = c(artHyper))
 plot(pd)
 ```
 
-# Final Model
+# Final Model choice
 
-* Final model was chosen by the model with the highest Sensitivity - 2SD
+## Criteria
+
+* Final model was chosen by the model with the highest Sensitivity
+
+* This corresponds to correctly identifying surviving patients (wrt cutoff = 0.5)
+
+* Minimizes incorrectly telling a patient they will die
+
+```{r}
+res_yl <- summary(res_meanmode_corr)
+sres_yl_df <- as.data.frame(res_yl) %>% 
+  pivot_wider(names_from = Statistic, values_from = Value)
+
+all_results <- rbind(sres_sl_df %>% 
+                       filter(Metric == 'Sensitivity'),
+                     sres_yl_df %>% 
+                       filter(Metric == 'Sensitivity'),
+                     sres_jt_df %>% 
+                       filter(Metric == 'Sensitivity')
+                     )
+
+```
+
 
 # References {.allowframebreaks}
