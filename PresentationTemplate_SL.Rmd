@@ -7,9 +7,12 @@ output:
     slide_level: 2
 editor_options: 
   chunk_output_type: inline
+bibliography: references.bib
+nocite: '@*'
 ---
   
 ```{r loadPackages, echo = FALSE, message=FALSE, warning=FALSE}
+suppressPackageStartupMessages(library(knitr))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(MachineShop))
 suppressPackageStartupMessages(library(recipes))
@@ -17,17 +20,20 @@ suppressPackageStartupMessages(library(kableExtra))
 suppressPackageStartupMessages(library(arsenal))
 ```  
   
-# Background of Hepatocellular Carcinoma (HCC) - text
+# Background of Hepatocellular Carcinoma (HCC)
 Liver cancer is the sixth most frequently diagnosed cancer and, especially, Hepatocellular Carcinoma (HCC) represents more than 90% of primary liver malignancy. Clinicians assess a patient's treatment on the basis of evidence, which may not always apply to a specific case, given the biological variability among individuals. Over the years, and for the particular case of HCC, studies have developed strategies for assisting clinicians in decision making, using data mining methods to extract knowledge from the clinical data. However, these studies have shortcomings: some did not focus entirely on HCC patients, others used strict application boundaries, and none considered the heterogeneity between patients nor the presence of missing data. Using the HCC dataset, we undertook the data mining approach to evaluate the patient level factors to identify those who are at risk of one year mortality. 
 
-## Background HCC - slide
--HepatoCellular Carcinoma (HCC) 6th most frequently diagnosed cancer. 
+## Background HCC
 
--Data mining approach to tailor evaluation and treatment for HCC are limited in the literature.
+* bullet point
+
+- HepatoCellular Carcinoma (HCC) 6th most frequently diagnosed cancer. 
+
+- Data mining approach to tailor evaluation and treatment for HCC are limited in the literature.
 
 -Using the HCC dataset, we undertook the data mining approach to evaluate the patient level factors to identify those who are at risk of one year mortality. 
 
-#Dataset - text 
+# Dataset - text 
 
 As for the data source, we usd Hepatocellular Carcinoma dataset (HCC dataset) collected at a University Hospital in Portugal, which contains real clinical data of 165 patients diagnosed with HCC.  The HCC data contains several demographic, risk factors, laboratory and overall survival features of 165 real patients. The dataset contains 49 features selected according to the EASL-EORTC (European Association for the Study of the Liver - European Organization for Research and Treatment of Cancer) Clinical Practice Guidelines, which are the current state-of-the-art on the management of HCC. 
 
@@ -69,7 +75,7 @@ Table 1 shows the demographic characteristics stratified by status. Overall, thi
 dat <- readRDS("./data/hcc_data.RDS")
 # dat <- readRDS("~/Desktop/R practice/Machine learning class spring 2022/hcc-survival/hcc_data.RDS")
 rec_base <- recipe(
-  status ~ .,
+  status ~ ,
   data = dat
 ) %>%
   role_case(stratum = status) %>%
@@ -147,13 +153,47 @@ summary(tbl, title = 'Table 1. HCC Data Summary')
 
 ## Description
 
+* This is a tree model
+
+* hyper paramters are this...
+
 ## Estimated Performance
+
+```{r}
+
+result_sl <- readRDS("./data/ModelCache/knn_corr_xgboost_res.RDS")
+sres <- as.data.frame(summary(result_sl))
+as.data.frame(sres) %>% 
+  pivot_wider(names_from = Statistic, values_from = Value) %>%
+  kable()
+
+```
+
 
 ## Calibration Plots
 
+```{r}
+plot(calibration(result_sl))
+```
+
+
 ## Variable Importance
 
+```{r warning=FALSE}
+fit_sl <- readRDS("./data/ModelCache/knn_corr_xgboost_fit.RDS")
+set.seed(123123)
+vi_sl <- varimp(fit_sl)
+plot(vi_sl, n=5)
+```
+
+
 ## Partial Dependence
+
+```{r, warning=FALSE}
+pd <- dependence(fit_sl, select = c(alphaFreto))
+plot(pd)
+```
+
 
 # XGBoost Model
 
@@ -178,3 +218,11 @@ summary(tbl, title = 'Table 1. HCC Data Summary')
 ## Variable Importance
 
 ## Partial Dependence
+
+# Final Model
+
+- how do we choose final model? Sensitivity
+
+# References
+
+##
