@@ -106,10 +106,10 @@ dat2 <- bake(prep(rec_base), new_data = dat)
 # Data Summary
 
 \begin{itemize} 
-    \item {Clinical data of 165 pts with HCC (demographic, risk factors, lab data, and survival features)}
-    \item {49 features from HCC clinical practice guidelines (Table 1)}
-    \item  About 80% male, 74% had alcohol related liver disease, 27% had hepatitis B, 21 % had hepatitis C, and 90% had cirrhosis. 
-    \item Missing data represents 10.22% of the whole dataset and only eight patients have complete information in all fields (4.85%). 
+    \item Clinical data of 165 pts with HCC (demographic, risk factors, lab data, and survival features)
+    \item 49 features from HCC clinical practice guidelines (Table 1)
+    \item About 80\% male, 74\% had alcohol related liver disease, 27\% had hepatitis B, 21\% had hepatitis C, and 90\% had cirrhosis. 
+    \item Missing data represents 10.22\% of the whole dataset and only eight patients have complete information in all fields (4.85\%). 
     \item Missing data were imputed using various methods, then step\_nzv was used to remove the variables that have near zero variability. 
     \item The target variable is the survival at 1 year, coded as 0 (dies) and 1 (lives). 
 \end{itemize}
