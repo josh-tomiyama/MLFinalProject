@@ -235,6 +235,8 @@ sres_knn_corr %>% kable(caption = "XGBoost results with knn imputation and featu
 
 * P-values are not significant. 
 
+* Bayesian optimization selected $\eta = 0.1$, maximum tree depth = 7, number of boosting iterations = 106, number of features = 44. 
+
 ```{r xgboost estiamted performance plot}
 # plot(res)
 ```
